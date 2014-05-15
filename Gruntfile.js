@@ -3,6 +3,15 @@ module.exports = function(grunt) {
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
     concat: {
+      lib: {
+        src: [
+          'public/lib/jquery.js',
+          'public/lib/underscore.js',
+          'public/lib/backbone.js',
+          'public/lib/handlebars.js'
+        ],
+        dest: 'public/dist/lib.js'
+      }
     },
 
     mochaTest: {
@@ -21,11 +30,26 @@ module.exports = function(grunt) {
     },
 
     uglify: {
+      options: {
+        mangle: true
+      },
+      client: {
+        files: {
+          'public/dist/client.min.js': ['public/client/*.js']
+        }
+      }
     },
 
     jshint: {
       files: [
-        // Add filespec list here
+        'app/**/*.js',
+        'lib/*.js',
+        'public/client/*.js',
+        'test/*.js',
+        'Gruntfile.js',
+        'package.json',
+        'server-config.js',
+        'server.js'
       ],
       options: {
         force: 'true',
@@ -38,6 +62,11 @@ module.exports = function(grunt) {
     },
 
     cssmin: {
+      minify: {
+        files: {
+          'public/dist/style.min.css' : ['public/*.css']
+        }
+      }
     },
 
     watch: {
@@ -60,7 +89,7 @@ module.exports = function(grunt) {
     shell: {
       prodServer: {
       }
-    },
+    }
   });
 
   grunt.loadNpmTasks('grunt-contrib-uglify');
@@ -94,6 +123,9 @@ module.exports = function(grunt) {
   ]);
 
   grunt.registerTask('build', [
+    'concat',
+    'uglify',
+    'cssmin'
   ]);
 
   grunt.registerTask('upload', function(n) {
@@ -104,9 +136,16 @@ module.exports = function(grunt) {
     }
   });
 
-  grunt.registerTask('deploy', [
-    // add your deploy tasks here
-  ]);
+  grunt.registerTask('deploy', function(n) {
+    grunt.task.run([
+      'build',
+      'jshint',
+      'test',
+      'upload'
+    ]);
+  });
+
+  grunt.registerTask('default', ['deploy']);
 
 
 };
